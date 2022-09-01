@@ -1,0 +1,15 @@
+{
+  "name": "cibus-spender",
+  "version": "1.0.0",
+  "description": "App for spending available Cibus budget of different things automatically",
+  "scripts": {
+    "wolt-gift-cards": "playwright test scenarios/wolt-gift-cards.spec.ts"
+  },
+  "author": "Shahar Mor",
+  "license": "ISC",
+  "dependencies": {
+    "@playwright/test": "1.25.1",
+    "delay": "5.0.0",
+    "p-map": "4.0.0"
+  }
+}
