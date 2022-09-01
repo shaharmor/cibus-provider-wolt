@@ -4,6 +4,7 @@ This app was build in order to automate the spending of remaining Cibus budget o
 
 ## How to use
 
+- Update the `scenarios/wolt-gift-cards.ts` file with your credentials
 - To spend all available Cibus budget on Wolt gift cards: `npm run wolt-gift-cards`
 
 ## TODO
