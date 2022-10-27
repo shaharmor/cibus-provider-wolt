@@ -9,6 +9,8 @@ const CIBUS_COMPANY = '';
 const GOOGLE_EMAIL = '';
 const GOOGLE_PASS = '';
 const WOLT_MIN_BUDGET = 20;
+const CIBUS_LIMIT_BUDGET = 0;
+const CIBUS_OVERSPEND = true;
 
 function calcBudgetDistribution(arr, sum) {
   function calcRecursive(arr, n, v, sum) {
@@ -62,8 +64,13 @@ test('spend cibus budget on wolf gift cards', async ({ page, browser }) => {
   console.log('Cibus: Reading available budget');
   const response = await page.waitForResponse('**/new_ajax_service.aspx?getBdgt=1');
   const body = await response.body();
-  const actualBudget = Number(body);
+  let actualBudget = Number(body);
   console.log(`Cibus: Available budget: ${actualBudget}`);
+
+  if (CIBUS_LIMIT_BUDGET > 0 && CIBUS_LIMIT_BUDGET < actualBudget) {
+    console.log(`Cibus: Limiting available budget from ${actualBudget} to ${CIBUS_LIMIT_BUDGET}`);
+    actualBudget = CIBUS_LIMIT_BUDGET;
+  }
 
   if (actualBudget < WOLT_MIN_BUDGET) {
     console.log(`Cibus: budget of ${actualBudget} is lower than wolt's smallest gift card of ${WOLT_MIN_BUDGET}`);
@@ -122,7 +129,16 @@ test('spend cibus budget on wolf gift cards', async ({ page, browser }) => {
   }
 
   const giftCardsPrices = giftCards.map((g) => g.value);
-  const cappedBudget = actualBudget - (actualBudget % 5);
+  const remainder = (actualBudget % 5);
+  let cappedBudget = actualBudget;
+  if (remainder > 0) {
+    if (CIBUS_OVERSPEND) {
+      cappedBudget = (actualBudget + 5) - (actualBudget % 5);
+    } else {
+      cappedBudget = actualBudget - (actualBudget % 5);
+    }
+  }
+
   console.log(`Wolt: Capping budget to ${cappedBudget}`);
   const giftCardsDistribution = calcBudgetDistribution(giftCardsPrices, cappedBudget);
   console.log(`Wolt: Gift cards distribution: ${cappedBudget} = ${giftCardsDistribution}`);
@@ -156,7 +172,7 @@ test('spend cibus budget on wolf gift cards', async ({ page, browser }) => {
   await delay(1000);
   console.log('Wolt: Choosing Cibus payment method');
   await woltPage.locator('data-test-id=PaymentMethods.SelectedPaymentMethod').click();
-  await woltPage.locator('data-test-id=PaymentMethodItem', { hasText: /Cibus/ }).click();
+  await woltPage.locator('data-test-id=PaymentMethod-cibus').click();
   await delay(3000);
   console.log('Wolt: Ordering');
   await woltPage.locator('data-test-id=SendOrderButton').click();
